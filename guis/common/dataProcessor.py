@@ -1758,8 +1758,9 @@ class SQLDataProcessor(DataProcessor):
         data = self.getProData()
 
         # Call all setters to store data in sql database
-        # Sense Wire Batch
-        self.callMethod(self.procedure.recordWireSpool, self.stripNumber(data[1]))
+        if self.wireQCd(data[1]):
+            # Sense Wire Batch
+            self.callMethod(self.procedure.recordWireSpool, self.stripNumber(data[1]))
         # Sense Wire Insertion Time
         self.callMethod(
             self.procedure.recordSenseWireInsertionTime, *self.parseTimeTuple(data[2])
@@ -2202,7 +2203,12 @@ class SQLDataProcessor(DataProcessor):
             )
 
     def wireQCd(self, wire):
-        id = self.stripNumber(wire)
+        if len(wire) < 11:
+            return False
+        try:
+            id = self.stripNumber(wire)
+        except:
+            return False
         spool = WireSpool.queryWithId(id)
         return spool is not None and spool.qc
 
